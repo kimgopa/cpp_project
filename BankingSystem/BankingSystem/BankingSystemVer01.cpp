@@ -1,60 +1,52 @@
 /*
-	< 은행계좌 관리 프로그램 >
-	
-	기능
-	1. 계좌개설
-	2. 입금
-	3. 출금
-	4. 전체고객 잔액조회
-
-	가정
-	- 통장의 계좌번호는 중복되지 아니한다. (중복 검사 X)
-	- 입금 및 출금액은 무조건 0보다 크다. (입금 및 출금액 검사 X)
-	- 고객의 계좌정보는 계좌번호, 고객이름, 고객의 잔액 세 가지만 저장 및 관리한다.
-	- 둘 이상의 고객 정보 저장을 위해서 배열을 사용한다.
-	- 계좌번호는 정수의 형태이다.
+* Banking System Ver 0.1.1
 */
-
 #include <iostream>
+
+#define NAME_LEN		20
 
 using namespace std;
 
-typedef struct Account
+typedef struct
 {
-	int ID;
-	char name[10];
-	int deposit;
+	int		accID;				// 계좌번호
+	int		balance;			// 잔액
+	char	cusName[NAME_LEN];	// 고객이름
 } Account;
 
-int ShowMenu();
-void MakeAccount(Account *account, int &account_cnt);
-void Deposit(Account *account, int account_cnt);
-void Withdraw(Account *account, int account_cnt);
-void AccountInfo(Account *account, int account_cnt);
+int ShowMenu();											// 메뉴 출력
+void MakeAccount(Account *account, int &acc_cnt);	// 1. 계좌개설
+void DepositMoney(Account *account, int acc_cnt);	// 2. 입금
+void WithdrawMoney(Account *account, int acc_cnt);	// 3. 출금
+void ShowAllAccInfo(Account *account, int acc_cnt);	// 4. 계좌정보 전체 출력
+
+enum { MAKE = 1, DEPOSIT, WITHDRAW, INQUIRE, EXIT };
+
+Account accArr[100];
+int acc_cnt = 0;
 
 int main(void)
 {
-	Account account[100];
-	int account_cnt = 0;
-
 	while (1)
 	{
 		switch (ShowMenu())
 		{
-		case 1:
-			MakeAccount(account, account_cnt);
+		case MAKE:
+			MakeAccount(accArr, acc_cnt);
 			break;
-		case 2:
-			Deposit(account, account_cnt);
+		case DEPOSIT:
+			DepositMoney(accArr, acc_cnt);
 			break;
-		case 3:
-			Withdraw(account, account_cnt);
+		case WITHDRAW:
+			WithdrawMoney(accArr, acc_cnt);
 			break;
-		case 4:
-			AccountInfo(account, account_cnt);
+		case INQUIRE:
+			ShowAllAccInfo(accArr, acc_cnt);
 			break;
-		case 5:
+		case EXIT:
 			return 0;
+		default:
+			cout << "Illegal selection." << endl << endl;
 		}
 	}
 
@@ -65,7 +57,11 @@ int ShowMenu()
 {
 	int nSelect;
 	cout << "------ Menu -----" << endl;
-	cout << "1. 계좌개설" << endl << "2. 입금" << endl << "3. 출금" << endl << "4. 계좌정보 전체 출력" << endl << "5. 프로그램 종료" << endl;
+	cout << "1. 계좌개설" << endl;
+	cout << "2. 입금" << endl;
+	cout << "3. 출금" << endl;
+	cout << "4. 계좌정보 전체 출력" << endl;
+	cout << "5. 프로그램 종료" << endl;
 	cout << "선택 : ";
 	cin >> nSelect;
 	cout << endl;
@@ -73,73 +69,75 @@ int ShowMenu()
 	return nSelect;
 }
 
-void MakeAccount(Account *account, int &account_cnt)
+void MakeAccount(Account *account, int &acc_cnt)
 {
 	cout << "[계좌개설]" << endl;
 	cout << "계좌ID : ";
-	cin >> account[account_cnt].ID;
+	cin >> account[acc_cnt].accID;
 	cout << "이름 : ";
-	cin >> account[account_cnt].name;
+	cin >> account[acc_cnt].cusName;
 	cout << "입금액 : ";
-	cin >> account[account_cnt].deposit;
-	cout << "\n";
+	cin >> account[acc_cnt].balance;
+	cout << endl;
 
-	account_cnt += 1;
+	acc_cnt += 1;
 }
 
-void Deposit(Account *account, int account_cnt)
+void DepositMoney(Account *account, int acc_cnt)
 {
-	int ID;
-	int deposit;
+	int accID;
+	int money;
 
 	cout << "[입금]" << endl;
 	cout << "계좌ID : ";
-	cin >> ID;
+	cin >> accID;
 	cout << "입금액 : ";
-	cin >> deposit;
+	cin >> money;
 
-	for (int i = 0; i < account_cnt; i++)
+	for (int i = 0; i < acc_cnt; i++)
 	{
-		if (account[i].ID == ID)
+		if (account[i].accID == accID)
 		{
-			account[i].deposit += deposit;
-			break;
+			account[i].balance += money;
+			cout << "입금완료" << endl << endl;
+			return;
 		}
 	}
 
-	cout << "입금완료\n\n";
+	cout << "유효하지 않은 ID입니다." << endl << endl;
 }
 
-void Withdraw(Account *account, int account_cnt)
+void WithdrawMoney(Account *account, int acc_cnt)
 {
-	int ID;
-	int withdraw;
+	int accID;
+	int money;
 
 	cout << "[출금]" << endl;
 	cout << "계좌ID : ";
-	cin >> ID;
+	cin >> accID;
 	cout << "출금액 : ";
-	cin >> withdraw;
+	cin >> money;
 
-	for (int i = 0; i < account_cnt; i++)
+	for (int i = 0; i < acc_cnt; i++)
 	{
-		if (account[i].ID == ID)
+		if (account[i].accID == accID)
 		{
-			account[i].deposit -= withdraw;
-			break;
+			account[i].balance -= money;
+			cout << "출금완료" << endl << endl;
+			return;
 		}
 	}
 
-	cout << "출금완료\n\n";
+	cout << "유효하지 않은 ID입니다." << endl << endl;
 }
 
-void AccountInfo(Account *account, int account_cnt)
+void ShowAllAccInfo(Account *account, int acc_cnt)
 {
-	for (int i = 0; i < account_cnt; i++)
+	for (int i = 0; i < acc_cnt; i++)
 	{
-		cout << "계좌ID : " << account[i].ID << endl;
-		cout << "이름 : " << account[i].name << endl;
-		cout << "입금액 : " << account[i].deposit << endl;
+		cout << "계좌ID : " << account[i].accID << endl;
+		cout << "이름 : " << account[i].cusName << endl;
+		cout << "입금액 : " << account[i].balance << endl;
 		cout << endl;
 	}
 }
