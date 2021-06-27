@@ -1,45 +1,12 @@
 /*
-* Banking System Ver 0.2.0
+* Banking System Ver 0.2.1
 */
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <cstring>
-using namespace std;
 
-class Account
-{
-private:
-	int		accID;				// 계좌번호
-	int		balance;			// 잔액
-	char	*cusName;			// 고객이름
-public:
-	Account(int _accID, int _balance, char *_cusName)
-	{
-		accID = _accID;
-		balance = _balance;
-		cusName = new char[strlen(_cusName) + 1];
-		strcpy(cusName, _cusName);
-	}
-	~Account()
-	{
-		delete[] cusName;
-	}
-	int GetAccID() const
-	{
-		return accID;
-	}
-	void SetBalance(int _balance)
-	{
-		balance += _balance;
-	}
-	void GetAccInfo() const
-	{
-		cout << "계좌ID : " << accID << endl;
-		cout << "이름 : " << cusName << endl;
-		cout << "입금액 : " << balance << endl;
-		cout << endl;
-	}
-};
+using namespace std;
+const int NAME_LEN = 20;
 
 int ShowMenu();				// 메뉴 출력
 void MakeAccount();			// 1. 계좌개설
@@ -48,6 +15,52 @@ void WithdrawMoney();		// 3. 출금
 void ShowAllAccInfo();		// 4. 계좌정보 전체 출력
 
 enum { MAKE = 1, DEPOSIT, WITHDRAW, INQUIRE, EXIT };
+
+class Account
+{
+private:
+	int		accID;				// 계좌번호
+	int		balance;			// 잔액
+	char	*cusName;			// 고객이름
+public:
+	Account(int _accID, int _balance, char *_cusName) : accID(_accID), balance(_balance)
+	{
+		cusName = new char[strlen(_cusName) + 1];
+		strcpy(cusName, _cusName);
+	}
+
+	~Account()
+	{
+		delete[] cusName;
+	}
+
+	int GetAccID() const
+	{
+		return accID;
+	}
+
+	void Deposit(int money)
+	{
+		balance += money;
+	}
+	
+	int Withdraw(int money)		// 출금액 반환, 부족시 0 반환
+	{
+		if (balance < money)
+			return 0;
+
+		balance -= money;
+
+		return money;
+	}
+
+	void GetAccInfo() const
+	{
+		cout << "계좌ID : " << accID << endl;
+		cout << "이름 : " << cusName << endl;
+		cout << "입금액 : " << balance << endl << endl;
+	}
+};
 
 Account *accArr[100];
 int acc_cnt = 0;
@@ -71,6 +84,8 @@ int main(void)
 			ShowAllAccInfo();
 			break;
 		case EXIT:
+			for (int i = 0; i < acc_cnt; i++)
+				delete accArr[i];
 			return 0;
 		default:
 			cout << "Illegal selection." << endl << endl;
@@ -100,7 +115,7 @@ void MakeAccount()
 {
 	int accID;
 	int balance;
-	char cusName[100];
+	char cusName[NAME_LEN];
 
 	cout << "[계좌개설]" << endl;
 	cout << "계좌ID : ";
@@ -131,7 +146,7 @@ void DepositMoney()
 	{
 		if (accArr[i]->GetAccID() == accID)
 		{
-			accArr[i]->SetBalance(money);
+			accArr[i]->Deposit(money);
 			cout << "입금완료" << endl << endl;
 			return;
 		}
@@ -155,7 +170,12 @@ void WithdrawMoney()
 	{
 		if (accArr[i]->GetAccID() == accID)
 		{
-			accArr[i]->SetBalance(-money);
+			if (accArr[i]->Withdraw(money) == 0)
+			{
+				cout << "잔액부족" << endl << endl;
+				return;
+			}
+
 			cout << "출금완료" << endl << endl;
 			return;
 		}
