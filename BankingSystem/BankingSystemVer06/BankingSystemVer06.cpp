@@ -1,5 +1,5 @@
 /*
-* Banking System Ver 0.6.0
+* Banking System Ver 0.6.1
 */
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
@@ -8,13 +8,14 @@
 using namespace std;
 const int NAME_LEN = 20;
 
+// 메뉴
 enum { MAKE = 1, DEPOSIT, WITHDRAW, INQUIRE, EXIT };
 
-namespace CREDIT_LEVEL
-{
-	enum { LEVEL_A = 1, LEVEL_B = 2, LEVEL_C = 3 };
-	enum { LEVEL_A_RATIO = 7, LEVEL_B_RATIO = 4, LEVEL_C_RATIO = 2 };
-}
+// 신용등급
+enum { LEVEL_A = 7, LEVEL_B = 4, LEVEL_C = 2 };
+
+// 계좌 종류
+enum { NORMAL = 1, CREDIT = 2 };
 
 class Account
 {
@@ -27,7 +28,6 @@ public:
 	Account(const Account &copy);
 	~Account();
 	int GetAccID() const;
-	int GetBalance() const;
 	virtual void Deposit(int money);
 	int Withdraw(int money);
 	void ShowAccInfo() const;
@@ -55,11 +55,6 @@ int Account::GetAccID() const
 	return accID;
 }
 
-int Account::GetBalance() const
-{
-	return balance;
-}
-
 void Account::Deposit(int money)
 {
 	balance += money;
@@ -82,56 +77,44 @@ void Account::ShowAccInfo() const
 	cout << "입금액 : " << balance << endl << endl;
 }
 
-class NormalAccount : public Account		// 보통예금계좌
+class NormalAccount : public Account	// 보통예금계좌
 {
 private:
-	double ratio;
+	int rate;
 public:
-	NormalAccount(int _accID, int _balance, char *_cusName, int _ratio);
+	NormalAccount(int _accID, int _balance, char *_cusName, int _rate);
 	void Deposit(int money);
 };
 
-NormalAccount::NormalAccount(int _accID, int _balance, char *_cusName, int _ratio)
-	: Account(_accID, _balance, _cusName), ratio(_ratio)
+NormalAccount::NormalAccount(int _accID, int _balance, char *_cusName, int _rate)
+	: Account(_accID, _balance, _cusName), rate(_rate)
 {
 }
 
 void NormalAccount::Deposit(int money)
 {
-	money += (int)(GetBalance() * (ratio / 100));
 	Account::Deposit(money);
+	Account::Deposit(money * (rate / 100.0));
 }
 
-class HighCreditAccount : public Account	// 신용신뢰계좌
+class HighCreditAccount : public NormalAccount	// 신용신뢰계좌
 {
 private:
-	double ratio;
 	int level;
 public:
-	HighCreditAccount(int _accID, int _balance, char *_cusName, int _ratio, int _level);
+	HighCreditAccount(int _accID, int _balance, char *_cusName, int _rate, int _level);
 	void Deposit(int money);
 };
 
-HighCreditAccount::HighCreditAccount(int _accID, int _balance, char *_cusName, int _ratio, int _level)
-	: Account(_accID, _balance, _cusName), ratio(_ratio), level(_level)
+HighCreditAccount::HighCreditAccount(int _accID, int _balance, char *_cusName, int _rate, int _level)
+	: NormalAccount(_accID, _balance, _cusName, _rate), level(_level)
 {
 }
 
 void HighCreditAccount::Deposit(int money)
 {
-	switch (level)
-	{
-	case CREDIT_LEVEL::LEVEL_A:
-		money += (int)(GetBalance() * ((CREDIT_LEVEL::LEVEL_A_RATIO + ratio) / 100));
-		break;
-	case CREDIT_LEVEL::LEVEL_B:
-		money += (int)(GetBalance() * ((CREDIT_LEVEL::LEVEL_B_RATIO + ratio) / 100));
-		break;
-	case CREDIT_LEVEL::LEVEL_C:
-		money += (int)(GetBalance() * ((CREDIT_LEVEL::LEVEL_C_RATIO + ratio) / 100));
-		break;
-	}
-	Account::Deposit(money);
+	NormalAccount::Deposit(money);
+	Account::Deposit(money * (level / 100.0));
 }
 
 class AccountHandler
@@ -147,6 +130,9 @@ public:
 	void DepositMoney();			// 2. 입금
 	void WithdrawMoney();			// 3. 출금
 	void ShowAllAccInfo() const;	// 4. 계좌정보 전체 출력
+protected:
+	void MakeNormalAccount();
+	void MakeCreditAccount();
 };
 
 AccountHandler::AccountHandler() : acc_cnt(0)
@@ -178,11 +164,6 @@ int AccountHandler::ShowMenu() const
 void AccountHandler::MakeAccount()
 {
 	int accType;
-	int accID;
-	int balance;
-	char cusName[NAME_LEN];
-	int ratio;
-	int level;
 
 	cout << "[계좌종류선택]" << endl;
 	cout << "1. 보통예금계좌  2. 신용신뢰계좌" << endl;
@@ -191,38 +172,73 @@ void AccountHandler::MakeAccount()
 	
 	switch (accType)
 	{
-	case 1 :
-		cout << "[보통예금계좌 개설]" << endl;
-		cout << "계좌ID : ";
-		cin >> accID;
-		cout << "이름 : ";
-		cin >> cusName;
-		cout << "입금액 : ";
-		cin >> balance;
-		cout << "이자율 : ";
-		cin >> ratio;
-		cout << endl;
-		accArr[acc_cnt] = new NormalAccount(accID, balance, cusName, ratio);
-		acc_cnt += 1;
+	case NORMAL:
+		MakeNormalAccount();
 		break;
-	case 2:
-		cout << "[신용신뢰계좌 개설]" << endl;
-		cout << "계좌ID : ";
-		cin >> accID;
-		cout << "이름 : ";
-		cin >> cusName;
-		cout << "입금액 : ";
-		cin >> balance;
-		cout << "이자율 : ";
-		cin >> ratio;
-		cout << "신용등급(1toA, 2toB, 3toC) : ";
-		cin >> level;
-		cout << endl;
-		accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, ratio, level);
-		acc_cnt += 1;
+	case CREDIT:
+		MakeCreditAccount();
 		break;
 	default:
 		cout << "계좌 종류를 잘못 선택하셨습니다." << endl << endl;
+		break;
+	}
+}
+
+void AccountHandler::MakeNormalAccount()
+{
+	int accID;
+	int balance;
+	char cusName[NAME_LEN];
+	int rate;
+
+	cout << "[보통예금계좌 개설]" << endl;
+	cout << "계좌ID : ";
+	cin >> accID;
+	cout << "이름 : ";
+	cin >> cusName;
+	cout << "입금액 : ";
+	cin >> balance;
+	cout << "이자율 : ";
+	cin >> rate;
+	cout << endl;
+	accArr[acc_cnt] = new NormalAccount(accID, balance, cusName, rate);
+	acc_cnt += 1;
+}
+
+void AccountHandler::MakeCreditAccount()
+{
+	int accID;
+	int balance;
+	char cusName[NAME_LEN];
+	int rate;
+	int level;
+
+	cout << "[신용신뢰계좌 개설]" << endl;
+	cout << "계좌ID : ";
+	cin >> accID;
+	cout << "이름 : ";
+	cin >> cusName;
+	cout << "입금액 : ";
+	cin >> balance;
+	cout << "이자율 : ";
+	cin >> rate;
+	cout << "신용등급(1toA, 2toB, 3toC) : ";
+	cin >> level;
+	cout << endl;
+
+	switch (level)
+	{
+	case 1:
+		accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_A);
+		acc_cnt += 1;
+		break;
+	case 2:
+		accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_B);
+		acc_cnt += 1;
+		break;
+	case 3:
+		accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_C);
+		acc_cnt += 1;
 		break;
 	}
 }
