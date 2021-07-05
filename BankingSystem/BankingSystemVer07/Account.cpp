@@ -1,7 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
-
-#include <iostream>
-#include <cstring>
+#include "BankingCommonDecl.h"
 #include "Account.h"
 using namespace std;
 

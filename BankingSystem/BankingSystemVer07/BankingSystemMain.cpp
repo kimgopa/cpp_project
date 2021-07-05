@@ -1,13 +1,8 @@
 /*
-* Banking System Ver 0.7.0
+* Banking System Ver 0.7.1
 */
-#define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-#include <cstring>
 #include "BankingCommonDecl.h"
 #include "AccountHandler.h"
-
-using namespace std;
 
 int main(void)
 {

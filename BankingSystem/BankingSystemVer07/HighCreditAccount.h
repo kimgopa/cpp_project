@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include "NormalAccount.h"
 
 class HighCreditAccount : public NormalAccount	// ½Å¿ë½Å·Ú°èÁÂ

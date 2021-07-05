@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include "Account.h"
 
 class NormalAccount : public Account	// 보통예금계좌
