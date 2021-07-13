@@ -36,7 +36,7 @@
     <ClInclude Include="NormalAccount.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Exception.h">
+    <ClInclude Include="AccountException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

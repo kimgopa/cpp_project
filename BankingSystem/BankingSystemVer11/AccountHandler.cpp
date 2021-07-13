@@ -4,7 +4,6 @@
 #include "NormalAccount.h"
 #include "HighCreditAccount.h"
 #include "String.h"
-#include "Exception.h"
 
 AccountHandler::AccountHandler() : acc_cnt(0)
 {
@@ -55,46 +54,28 @@ void AccountHandler::MakeAccount()
 	}
 }
 
-void AccountHandler::MakeNormalAccount() throw (Exception)
+void AccountHandler::MakeNormalAccount()
 {
 	int accID;
 	int balance;
 	String cusName;
 	int rate;
 
-	while (1)
-	{
-		try
-		{
-			cout << "[보통예금계좌 개설]" << endl;
-			cout << "계좌ID : ";
-			cin >> accID;
-			cout << "이름 : ";
-			cin >> cusName;
-			cout << "입금액 : ";
-			cin >> balance;
-			cout << "이자율 : ";
-			cin >> rate;
-			cout << endl;
-
-			if (balance < 0)
-			{
-				MinusException expn;
-				throw expn;
-			}
-
-			accArr[acc_cnt] = new NormalAccount(accID, balance, cusName, rate);
-			acc_cnt += 1;
-			break;
-		}
-		catch (MinusException &expn)
-		{
-			expn.ShowExceptionReason();
-		}
-	}
+	cout << "[보통예금계좌 개설]" << endl;
+	cout << "계좌ID : ";
+	cin >> accID;
+	cout << "이름 : ";
+	cin >> cusName;
+	cout << "입금액 : ";
+	cin >> balance;
+	cout << "이자율 : ";
+	cin >> rate;
+	cout << endl;
+	accArr[acc_cnt] = new NormalAccount(accID, balance, cusName, rate);
+	acc_cnt += 1;
 }
 
-void AccountHandler::MakeCreditAccount() throw (Exception)
+void AccountHandler::MakeCreditAccount()
 {
 	int accID;
 	int balance;
@@ -102,74 +83,51 @@ void AccountHandler::MakeCreditAccount() throw (Exception)
 	int rate;
 	int level;
 
-	while (1)
+	cout << "[신용신뢰계좌 개설]" << endl;
+	cout << "계좌ID : ";
+	cin >> accID;
+	cout << "이름 : ";
+	cin >> cusName;
+	cout << "입금액 : ";
+	cin >> balance;
+	cout << "이자율 : ";
+	cin >> rate;
+	cout << "신용등급(1toA, 2toB, 3toC) : ";
+	cin >> level;
+	cout << endl;
+
+	switch (level)
 	{
-		try
-		{
-			cout << "[신용신뢰계좌 개설]" << endl;
-			cout << "계좌ID : ";
-			cin >> accID;
-			cout << "이름 : ";
-			cin >> cusName;
-			cout << "입금액 : ";
-			cin >> balance;
-			cout << "이자율 : ";
-			cin >> rate;
-			cout << "신용등급(1toA, 2toB, 3toC) : ";
-			cin >> level;
-			cout << endl;
-
-			if (balance < 0)
-			{
-				MinusException expn;
-				throw expn;
-			}
-
-			switch (level)
-			{
-			case 1:
-				accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_A);
-				acc_cnt += 1;
-				break;
-			case 2:
-				accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_B);
-				acc_cnt += 1;
-				break;
-			case 3:
-				accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_C);
-				acc_cnt += 1;
-				break;
-			}
-
-			break;
-		}
-		catch (MinusException &expn)
-		{
-			expn.ShowExceptionReason();
-		}
+	case 1:
+		accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_A);
+		acc_cnt += 1;
+		break;
+	case 2:
+		accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_B);
+		acc_cnt += 1;
+		break;
+	case 3:
+		accArr[acc_cnt] = new HighCreditAccount(accID, balance, cusName, rate, LEVEL_C);
+		acc_cnt += 1;
+		break;
 	}
 }
 
-void AccountHandler::DepositMoney() throw (Exception)
+void AccountHandler::DepositMoney()
 {
 	int accID;
 	int money;
 
+	cout << "[입금]" << endl;
+	cout << "계좌ID : ";
+	cin >> accID;
+
 	while (1)
 	{
 		try
 		{
-			cout << "[입금]" << endl;
-			cout << "계좌ID : ";
-			cin >> accID;
 			cout << "입금액 : ";
 			cin >> money;
-
-			if (money < 0)
-			{
-				MinusException expn;
-				throw expn;
-			}
 
 			for (int i = 0; i < acc_cnt; i++)
 			{
@@ -182,59 +140,54 @@ void AccountHandler::DepositMoney() throw (Exception)
 			}
 
 			cout << "유효하지 않은 ID입니다." << endl << endl;
+			return;
 		}
-		catch (MinusException &expn)
+		catch (MinusException &expt)
 		{
-			expn.ShowExceptionReason();
+			expt.ShowExceptionInfo();
+			cout << "입금액만 재입력하세요." << endl;
 		}
 	}
 }
 
-void AccountHandler::WithdrawMoney() throw (Exception)
+void AccountHandler::WithdrawMoney()
 {
 	int accID;
 	int money;
+
+	cout << "[출금]" << endl;
+	cout << "계좌ID : ";
+	cin >> accID;
 
 	while (1)
 	{
 		try
 		{
-			cout << "[출금]" << endl;
-			cout << "계좌ID : ";
-			cin >> accID;
 			cout << "출금액 : ";
 			cin >> money;
-
-			if (money < 0)
-			{
-				MinusException expn1;
-				throw expn1;
-			}
 
 			for (int i = 0; i < acc_cnt; i++)
 			{
 				if (accArr[i]->GetAccID() == accID)
 				{
 					if (accArr[i]->Withdraw(money) == 0)
-					{
-						WithdrawException expn2(money);
-						throw expn2;
-					}
-
 					cout << "출금완료" << endl << endl;
 					return;
 				}
 			}
 
 			cout << "유효하지 않은 ID입니다." << endl << endl;
+			return;
 		}
-		catch (MinusException &expn1)
+		catch (MinusException &expt)
 		{
-			expn1.ShowExceptionReason();
+			expt.ShowExceptionInfo();
+			cout << "입금액만 재입력하세요." << endl;
 		}
-		catch (WithdrawException &expn2)
+		catch (InsuffException &expt)
 		{
-			expn2.ShowExceptionReason();
+			expt.ShowExceptionInfo();
+			cout << "출금액만 재입력하세요." << endl;
 		}
 	}
 }
